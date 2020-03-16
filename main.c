@@ -2,7 +2,6 @@
 #include <joystick.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <peekpoke.h>
 #include <unistd.h>
 
@@ -19,16 +18,13 @@ typedef struct  {
 #define SNAKE_BODY 87
 
 #define EMPTY 0
-#define APPLE 1
-#define SNAKE_RIGHT 2
-#define SNAKE_DOWN 3
-#define SNAKE_LEFT 4
-#define SNAKE_UP 5
-#define WALL 6
+#define APPLE 69
+#define WALL 90
 
-
-#define poke(addr, value)  POKE(addr, value)
-#define peek(addr) PEEK(addr)
+#define SNAKE_RIGHT 1
+#define SNAKE_DOWN 40
+#define SNAKE_LEFT -1
+#define SNAKE_UP -40
 
 unsigned int level1[] = {
 		80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,		
@@ -62,7 +58,7 @@ unsigned short screen[1024];
 void build_level(unsigned int level[], int size) {
 	int i=0;
 	for (; i < size;i++) {
-		poke(VIDEO_MEMORY + level[i], 102);
+		POKE(VIDEO_MEMORY + level[i], 102);
 		screen[level[i]] = WALL;
 	}
 }
@@ -76,7 +72,7 @@ void new_apple(void) {
 	for (;;) {
 		i=rand() % (1024 - 80 - 80 -80);
 		if (screen[i + 160] == EMPTY) {
-			poke(VIDEO_MEMORY + 160 + i, 83);
+			POKE(VIDEO_MEMORY + 160 + i, 83);
 			screen[i + 160] = APPLE;
 			return;
 		}		
@@ -84,25 +80,12 @@ void new_apple(void) {
 	
 }
 
-int move_offs(int direction) {
-	if (direction == SNAKE_RIGHT)
-		return 1;
-	if (direction == SNAKE_LEFT)
-		return -1;
-	if (direction == SNAKE_UP)
-		return -40;
-	if (direction == SNAKE_DOWN)
-		return 40;
-}
-
 int update(snake *pup) {
 
-	int go_to;
-
-	go_to = pup->head + move_offs(pup->direction);
+	int go_to = pup->head + pup->direction;
 	
 	//check events 
-	if (screen[go_to] > APPLE) { // collision with body or wall
+	if (screen[go_to] != EMPTY && screen[go_to] != APPLE) { // collision with body or wall
 		return 1;
 	} else if (screen[go_to] == APPLE) {
 		pup->grow = 1;
@@ -111,23 +94,22 @@ int update(snake *pup) {
 		
 	// set the change of direction
 	screen[pup->head]=pup->direction;	
-	poke(VIDEO_MEMORY + pup->head, SNAKE_BODY);
+	POKE(VIDEO_MEMORY + pup->head, SNAKE_BODY);
 	
 	//move head
 	pup->head = go_to;	
 	screen[pup->head]=pup->direction;
-	poke(VIDEO_MEMORY + pup->head, SNAKE_HEAD);
+	POKE(VIDEO_MEMORY + pup->head, SNAKE_HEAD);
 		
 	if (pup->grow-- > 0) {		
 		return 0;
 	}
 	
-	//move tail
-	go_to = move_offs(screen[pup->tail]);
+	go_to = screen[pup->tail];
 	screen[pup->tail]=EMPTY;
-	poke(VIDEO_MEMORY + pup->tail, 32);	
+	POKE(VIDEO_MEMORY + pup->tail, 32);	
 	pup->tail += go_to;
-	poke(VIDEO_MEMORY + pup->tail, SNAKE_TAIL);
+	POKE(VIDEO_MEMORY + pup->tail, SNAKE_TAIL);
 	return 0;
 	
 }
@@ -152,10 +134,10 @@ void init_level(snake *pup) {
 	build_level(level1, sizeof(level1) / 2);
 			
 	init_snake(pup);
-	screen[pup->head] = SNAKE_RIGHT;
-	screen[pup->tail] = SNAKE_RIGHT;
-	poke(VIDEO_MEMORY + pup->head, SNAKE_HEAD);
-	poke(VIDEO_MEMORY + pup->tail, SNAKE_TAIL);
+	screen[pup->head] = pup->direction;
+	screen[pup->tail] = pup->direction;
+	POKE(VIDEO_MEMORY + pup->head, SNAKE_HEAD);
+	POKE(VIDEO_MEMORY + pup->tail, SNAKE_TAIL);
 	
 	new_apple();
 	new_apple();
@@ -166,31 +148,31 @@ void init_level(snake *pup) {
 int main(void) {	
 	unsigned int i = 0;
 	unsigned int sleeps = 610;
+		
 	snake pup;
 		
 	joy_install (joy_static_stddrv);	
-	poke(0xd018, 0x15);	
+	POKE(0xd018, 0x15);	
 	init_level(&pup);
 	
-	do {
+	for (;;) {
 		char fat = joy_read(JOY_2);		
 		if (JOY_UP(fat) && pup.direction != SNAKE_DOWN) {
 			pup.direction = SNAKE_UP;			
 		} else if (JOY_DOWN(fat) && pup.direction != SNAKE_UP) {
-			pup.direction = SNAKE_DOWN;
+			pup.direction = SNAKE_DOWN;			
 		} else if (JOY_LEFT(fat) && pup.direction != SNAKE_RIGHT) {
-			pup.direction = SNAKE_LEFT;
+			pup.direction = SNAKE_LEFT;			
 		} else if (JOY_RIGHT(fat) && pup.direction != SNAKE_LEFT) {
-			pup.direction = SNAKE_RIGHT;
+			pup.direction = SNAKE_RIGHT;			
 		}		
 		if (update (&pup)) {
 			sleep(1);
 			init_level(&pup);
 		}
-		for ( i = 0; i<sleeps ; i++) {
-		}		
+		for ( i = 0; i<sleeps ; i++) {	}		
 		
-	} while(true);
+	} 
 	
 	return EXIT_SUCCESS;
 }
