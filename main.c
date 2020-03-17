@@ -1,9 +1,11 @@
+#include <cbm.h>
 #include <conio.h>
 #include <joystick.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <peekpoke.h>
 #include <unistd.h>
+
 
 typedef struct  {
 	int head;
@@ -52,8 +54,7 @@ unsigned int level1[] = {
 		960,961,962,963,964,965,966,967,968,969,970,971,972,973,974,975,976,977,978,979,980,981,982,983,984,985,986,987,988,989,990,991,992,993,994,995,996,997,998,999
 		};
 
-// TODO: fallo meglio.. non ha senso sprecare byte per due righe in meno
-unsigned short screen[1024];
+unsigned short screen[1000];
 
 void build_level(unsigned int level[], int size) {
 	int i=0;
@@ -63,21 +64,17 @@ void build_level(unsigned int level[], int size) {
 	}
 }
 
-// TODO: fallo meglio.. evitare che si oltrepassi l'area di gioco
-// TODO: le mele dovrebbero essere sempre 4 ma invece ogni tanto ne sparisce una :( --> dipende dal fatto che alle volte
-//	 spuntano fuori dal campo di gioco
-
 void new_apple(void) {
 	int i;	
 	for (;;) {
-		i=rand() % (1024 - 80 - 80 -80);
+		i=rand() % (1000 - 80 - 80);
 		if (screen[i + 160] == EMPTY) {
 			POKE(VIDEO_MEMORY + 160 + i, 83);
+			POKE(COLOR_RAM + 160 + i, COLOR_YELLOW);
 			screen[i + 160] = APPLE;
 			return;
 		}		
 	}	
-	
 }
 
 int update(snake *pup) {
@@ -95,11 +92,13 @@ int update(snake *pup) {
 	// set the change of direction
 	screen[pup->head]=pup->direction;	
 	POKE(VIDEO_MEMORY + pup->head, SNAKE_BODY);
+	POKE(COLOR_RAM + pup->head, COLOR_BROWN);
 	
 	//move head
 	pup->head = go_to;	
 	screen[pup->head]=pup->direction;
 	POKE(VIDEO_MEMORY + pup->head, SNAKE_HEAD);
+	POKE(COLOR_RAM + pup->head, COLOR_GREEN	);
 		
 	if (pup->grow-- > 0) {		
 		return 0;
@@ -124,11 +123,11 @@ void init_snake(snake *snake) {
 void init_level(snake *pup) {
 	int x;
 	
-	bgcolor(0);
-	bordercolor(0);
+	VIC.bordercolor = COLOR_BLACK;
+	VIC.bgcolor0 = COLOR_BLACK;
 	clrscr();
 	
-	for (x=0;x< 1024;x++) {
+	for (x=0;x<1000;x++) {
 		screen[x]=EMPTY;
 	}
 	build_level(level1, sizeof(level1) / 2);
@@ -147,12 +146,12 @@ void init_level(snake *pup) {
 
 int main(void) {	
 	unsigned int i = 0;
-	unsigned int sleeps = 610;
+	unsigned int sleeps = 410;
 		
 	snake pup;
 		
 	joy_install (joy_static_stddrv);	
-	POKE(0xd018, 0x15);	
+	VIC.addr = 0x15;
 	init_level(&pup);
 	
 	for (;;) {
