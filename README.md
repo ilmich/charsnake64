@@ -4,8 +4,8 @@ CharSnake64 it's a clone of a classic [video game genre](https://en.wikipedia.or
 With its deliberately simple graphics, I just wanted to have fun programming again for the Commodore 64 in c
 
 # Screenshots
-![Game Intro](intro.jpg)
-![Screenshot](shot.jpg)
+![Game Intro](intro.jpg =320x240)
+![Screenshot](shot.jpg =320x240)
 
 # Build from source
 
