@@ -58,6 +58,8 @@ typedef struct  {
 
 typedef struct {
 	snake_t snake;
+	unsigned int score;
+	unsigned char lives;
 	unsigned short screen[1000];
 } game_t;
 
@@ -69,6 +71,17 @@ void build_level(unsigned int level[], int size) {
 		POKE(VIDEO_MEMORY + level[i], 102);
 		pup.screen[level[i]] = WALL;
 	}
+}
+
+char lives[][4] = {" ", "# ", "## ", "###"};
+
+void updateScoreLives(void) {
+	char str[20];	
+	
+	sprintf(str,"score:%06d",pup.score);
+	cputsxy(0,0,str);
+	cputsxy(0,1,"lives:");
+	cputsxy(6,1, lives[pup.lives]);
 }
 
 void new_apple(void) {
@@ -93,6 +106,8 @@ int update(void) {
 		return 1;
 	} else if (pup.screen[go_to] == APPLE) {
 		pup.snake.grow = 1;
+		pup.score += 10;
+		updateScoreLives();
 		new_apple();
 	}
 
@@ -130,7 +145,7 @@ void init_snake() {
 
 void init_level(void) {
 	int x;
-
+	
 	clrscr();
 	VIC.addr = 0x15;
 	
@@ -149,7 +164,10 @@ void init_level(void) {
 	new_apple();
 	new_apple();
 	new_apple();
+	
+	updateScoreLives();
 }
+
 void game_intro(void) {
 	unsigned char blink = 0;
 	unsigned int i = 0;
@@ -188,8 +206,10 @@ void game_play(void) {
 	unsigned int i = 0;
 	unsigned int sleeps = 510;
 
+	pup.lives = 3;
+	pup.score = 0;
 	init_level();
-
+	
 	for (;;) {
 		char fat = joy_read(JOY_2);
 		if (JOY_UP(fat) && pup.snake.direction != SNAKE_DOWN) {
@@ -202,8 +222,12 @@ void game_play(void) {
 			pup.snake.direction = SNAKE_RIGHT;
 		}
 		if (update ()) {
+			pup.lives -= 1;
+			updateScoreLives();
 			sleep(1);
-			return;
+			if (pup.lives == 0) {
+				return;
+			}
 			init_level();
 		}
 		for ( i = 0; i<sleeps ; i++) {}
