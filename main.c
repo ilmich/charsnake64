@@ -6,14 +6,6 @@
 #include <peekpoke.h>
 #include <unistd.h>
 
-
-typedef struct  {
-	int head;
-	int tail;
-	int grow;
-	int direction;
-} snake ;
-
 #define VIDEO_MEMORY 0x0400
 #define SNAKE_HEAD 35
 #define SNAKE_TAIL 43
@@ -28,8 +20,11 @@ typedef struct  {
 #define SNAKE_LEFT -1
 #define SNAKE_UP -40
 
+#define GAME_INTRO 1
+#define GAME_PLAY 2
+
 unsigned int level1[] = {
-		80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,		
+		80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,
 		80 + 40, 80 +40 + 39,
 		80 + (40 * 2), 80 + (40*2) + 39,
 		80 + (40 * 3), 80 + (40*3) + 39,
@@ -54,125 +49,176 @@ unsigned int level1[] = {
 		960,961,962,963,964,965,966,967,968,969,970,971,972,973,974,975,976,977,978,979,980,981,982,983,984,985,986,987,988,989,990,991,992,993,994,995,996,997,998,999
 		};
 
-unsigned short screen[1000];
+typedef struct  {
+	int head;
+	int tail;
+	unsigned char grow;
+	int direction;
+} snake_t;
+
+typedef struct {
+	snake_t snake;
+	unsigned short screen[1000];
+} game_t;
+
+game_t pup;
 
 void build_level(unsigned int level[], int size) {
 	int i=0;
 	for (; i < size;i++) {
 		POKE(VIDEO_MEMORY + level[i], 102);
-		screen[level[i]] = WALL;
+		pup.screen[level[i]] = WALL;
 	}
 }
 
 void new_apple(void) {
-	int i;	
+	int i;
 	for (;;) {
 		i=rand() % (1000 - 80 - 80);
-		if (screen[i + 160] == EMPTY) {
+		if (pup.screen[i + 160] == EMPTY) {
 			POKE(VIDEO_MEMORY + 160 + i, 83);
 			POKE(COLOR_RAM + 160 + i, COLOR_YELLOW);
-			screen[i + 160] = APPLE;
+			pup.screen[i + 160] = APPLE;
 			return;
-		}		
-	}	
+		}
+	}
 }
 
-int update(snake *pup) {
+int update(void) {
 
-	int go_to = pup->head + pup->direction;
-	
+	int go_to = pup.snake.head + pup.snake.direction;
+
 	//check events 
-	if (screen[go_to] != EMPTY && screen[go_to] != APPLE) { // collision with body or wall
+	if (pup.screen[go_to] != EMPTY && pup.screen[go_to] != APPLE) { // collision with body or wall
 		return 1;
-	} else if (screen[go_to] == APPLE) {
-		pup->grow = 1;
-		new_apple();		
+	} else if (pup.screen[go_to] == APPLE) {
+		pup.snake.grow = 1;
+		new_apple();
 	}
-		
+
 	// set the change of direction
-	screen[pup->head]=pup->direction;	
-	POKE(VIDEO_MEMORY + pup->head, SNAKE_BODY);
-	POKE(COLOR_RAM + pup->head, COLOR_BROWN);
-	
+	pup.screen[pup.snake.head]=pup.snake.direction;	
+	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_BODY);
+	POKE(COLOR_RAM + pup.snake.head, COLOR_BROWN);
+
 	//move head
-	pup->head = go_to;	
-	screen[pup->head]=pup->direction;
-	POKE(VIDEO_MEMORY + pup->head, SNAKE_HEAD);
-	POKE(COLOR_RAM + pup->head, COLOR_GREEN	);
+	pup.snake.head = go_to;	
+	pup.screen[pup.snake.head]=pup.snake.direction;
+	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
+	POKE(COLOR_RAM + pup.snake.head, COLOR_GREEN	);
 		
-	if (pup->grow-- > 0) {		
+	if (pup.snake.grow == 1) {
+		pup.snake.grow = 0;
 		return 0;
 	}
-	
-	go_to = screen[pup->tail];
-	screen[pup->tail]=EMPTY;
-	POKE(VIDEO_MEMORY + pup->tail, 32);	
-	pup->tail += go_to;
-	POKE(VIDEO_MEMORY + pup->tail, SNAKE_TAIL);
+
+	go_to = pup.screen[pup.snake.tail];
+	pup.screen[pup.snake.tail]=EMPTY;
+	POKE(VIDEO_MEMORY + pup.snake.tail, 32);
+	pup.snake.tail += go_to;
+	POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
 	return 0;
-	
+
 }
 
-void init_snake(snake *snake) {	
-	snake->head = 380;
-	snake->tail = 379;
-	snake->grow = 0;
-	snake->direction = SNAKE_RIGHT;
+void init_snake() {
+	pup.snake.head = 380;
+	pup.snake.tail = 379;
+	pup.snake.grow = 0;
+	pup.snake.direction = SNAKE_RIGHT;
 }
 
-void init_level(snake *pup) {
+void init_level(void) {
 	int x;
-	
-	VIC.bordercolor = COLOR_BLACK;
-	VIC.bgcolor0 = COLOR_BLACK;
+
 	clrscr();
+	VIC.addr = 0x15;
 	
 	for (x=0;x<1000;x++) {
-		screen[x]=EMPTY;
+		pup.screen[x]=EMPTY;
 	}
 	build_level(level1, sizeof(level1) / 2);
-			
-	init_snake(pup);
-	screen[pup->head] = pup->direction;
-	screen[pup->tail] = pup->direction;
-	POKE(VIDEO_MEMORY + pup->head, SNAKE_HEAD);
-	POKE(VIDEO_MEMORY + pup->tail, SNAKE_TAIL);
-	
+
+	init_snake();
+	pup.screen[pup.snake.head] = pup.snake.direction;
+	pup.screen[pup.snake.tail] = pup.snake.direction;
+	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
+	POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
+
 	new_apple();
 	new_apple();
 	new_apple();
 	new_apple();
 }
-
-int main(void) {	
+void game_intro(void) {
+	unsigned char blink = 0;
 	unsigned int i = 0;
-	unsigned int sleeps = 410;
-		
-	snake pup;
-		
-	joy_install (joy_static_stddrv);	
-	VIC.addr = 0x15;
-	init_level(&pup);
-	
+	unsigned int sleeps = 1300;
+
+	clrscr();
+	VIC.addr = 0x17;
+
+	cputsxy(13,5,"Char Snake 64");
+	cputsxy(13,6,"=============");
+	cputsxy(15,10,"+*****");
+	cputsxy(20,11,"*");
+	cputsxy(20,12,"*");
+	cputsxy(20,13,"*****#");
+
+	cputsxy(12,19,"Coded by ilmich");
+	cputsxy(1,20,"https://github.com/ilmich/charsnake64");
+
 	for (;;) {
-		char fat = joy_read(JOY_2);		
-		if (JOY_UP(fat) && pup.direction != SNAKE_DOWN) {
-			pup.direction = SNAKE_UP;			
-		} else if (JOY_DOWN(fat) && pup.direction != SNAKE_UP) {
-			pup.direction = SNAKE_DOWN;			
-		} else if (JOY_LEFT(fat) && pup.direction != SNAKE_RIGHT) {
-			pup.direction = SNAKE_LEFT;			
-		} else if (JOY_RIGHT(fat) && pup.direction != SNAKE_LEFT) {
-			pup.direction = SNAKE_RIGHT;			
-		}		
-		if (update (&pup)) {
-			sleep(1);
-			init_level(&pup);
+		char fat = joy_read(JOY_2);
+		if (JOY_BTN_1(fat)) {
+			return;
 		}
-		for ( i = 0; i<sleeps ; i++) {	}		
-		
-	} 
-	
+		if (blink) {
+			cputsxy(5,16,"                             ");
+			blink = 0;
+		} else {
+			cputsxy(5,16,"Press fire on joy 2 to start.");
+			blink = 1;
+		}
+		for ( i = 0; i<sleeps ; i++) {}
+	}
+}
+
+void game_play(void) {
+	unsigned int i = 0;
+	unsigned int sleeps = 510;
+
+	init_level();
+
+	for (;;) {
+		char fat = joy_read(JOY_2);
+		if (JOY_UP(fat) && pup.snake.direction != SNAKE_DOWN) {
+			pup.snake.direction = SNAKE_UP;
+		} else if (JOY_DOWN(fat) && pup.snake.direction != SNAKE_UP) {
+			pup.snake.direction = SNAKE_DOWN;
+		} else if (JOY_LEFT(fat) && pup.snake.direction != SNAKE_RIGHT) {
+			pup.snake.direction = SNAKE_LEFT;
+		} else if (JOY_RIGHT(fat) && pup.snake.direction != SNAKE_LEFT) {
+			pup.snake.direction = SNAKE_RIGHT;
+		}
+		if (update ()) {
+			sleep(1);
+			return;
+			init_level();
+		}
+		for ( i = 0; i<sleeps ; i++) {}
+	}
+}
+
+int main(void) {
+	joy_install (joy_static_stddrv);
+	VIC.bordercolor = COLOR_BLACK;
+
+	VIC.bgcolor0 = COLOR_BLACK;
+	for (;;) {
+		game_intro();
+		game_play();
+	}
+
 	return EXIT_SUCCESS;
 }
-
