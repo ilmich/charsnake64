@@ -1,6 +1,6 @@
 # About
 
-CharSnake64 it's a clone of a classic [video game genre](https://en.wikipedia.org/wiki/Snake_(video_game_genre) for Commodore 64.  
+CharSnake64 it's a clone of a classic [video game genre](https://en.wikipedia.org/wiki/Snake_(video_game_genre)) for Commodore 64.  
 With its deliberately simple graphics, I just wanted to have fun programming again for the Commodore 64 in c
 
 ![Screenshot](shot.jpg)
