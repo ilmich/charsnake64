@@ -56,14 +56,12 @@ typedef struct  {
 	int direction;
 } snake_t;
 
-typedef struct {
+struct {
 	snake_t snake;
 	unsigned int score;
 	unsigned char lives;
 	unsigned short screen[1000];
-} game_t;
-
-game_t pup;
+} pup = { {380, 379, 0, SNAKE_RIGHT},0,3 };
 
 void build_level(unsigned int level[], int size) {
 	int i=0;
@@ -87,7 +85,7 @@ void updateScoreLives(void) {
 void new_apple(void) {
 	int i;
 	for (;;) {
-		i=rand() % (1000 - 80 - 80);
+		i=rand() % (1000 - 160);
 		if (pup.screen[i + 160] == EMPTY) {
 			POKE(VIDEO_MEMORY + 160 + i, 83);
 			POKE(COLOR_RAM + 160 + i, COLOR_YELLOW);
@@ -136,13 +134,6 @@ int update(void) {
 
 }
 
-void init_snake() {
-	pup.snake.head = 380;
-	pup.snake.tail = 379;
-	pup.snake.grow = 0;
-	pup.snake.direction = SNAKE_RIGHT;
-}
-
 void init_level(void) {
 	int x;
 	
@@ -154,7 +145,6 @@ void init_level(void) {
 	}
 	build_level(level1, sizeof(level1) / 2);
 
-	init_snake();
 	pup.screen[pup.snake.head] = pup.snake.direction;
 	pup.screen[pup.snake.tail] = pup.snake.direction;
 	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
