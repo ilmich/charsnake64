@@ -90,7 +90,7 @@ struct {
 	unsigned int score;
 	unsigned char lives;
 	signed char screen[1000];
-} pup = { {380, 379, 0, SNAKE_RIGHT},0,3 };
+} pup = { {},0,3 };
 
 void build_level(unsigned int level[], int size) {
 	int i=0;
@@ -124,8 +124,7 @@ void new_apple(void) {
 	}
 }
 
-int update(void) {
-	
+int update(void) {	
 	int go_to = pup.snake.head + pup.snake.direction;
 
 	//check events 
@@ -165,7 +164,7 @@ int update(void) {
 }
 
 void init_level(void) {
-	int x;
+	int x;    
 	
 	clrscr();
 	VIC.addr = 0x15;
@@ -175,6 +174,11 @@ void init_level(void) {
 	}
 	build_level(level1, sizeof(level1) / 2);
 
+    pup.snake.head = 380;
+    pup.snake.tail = 379;
+    pup.snake.grow = 0;
+    pup.snake.direction = SNAKE_RIGHT;
+    
 	pup.screen[pup.snake.head] = pup.snake.direction;
 	pup.screen[pup.snake.tail] = pup.snake.direction;
 	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
