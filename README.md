@@ -18,6 +18,6 @@ The following tools are needed to compile from the source:
 so after meet these requirements launch
 ```
 make # to build	output snake.prg
-make charsnake64.d64 # to build output .d64 image
+make d64 # to build output .d64 image
 make test # to build and launch vice for tests
 ```
