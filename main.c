@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <peekpoke.h>
+#include <time.h>
 #include <unistd.h>
 
 #define VIDEO_MEMORY 0x0400
@@ -83,6 +84,8 @@ typedef struct  {
 	int tail;
 	unsigned char grow;
 	int direction;
+    clock_t speed; //in jiffy clock cicles
+    clock_t updated; //in jiffy clock cicles
 } snake_t;
 
 struct {
@@ -124,9 +127,14 @@ void new_apple(void) {
 	}
 }
 
-int update(void) {	
+int update(clock_t jiffy) {	
 	int go_to = pup.snake.head + pup.snake.direction;
 
+    if ((jiffy - pup.snake.updated) < pup.snake.speed) {
+        return 0;
+    }
+
+    pup.snake.updated = clock();
 	//check events 
 	if (pup.screen[go_to] != EMPTY && pup.screen[go_to] != APPLE) { // collision with body or wall
 		return 1;
@@ -178,6 +186,8 @@ void init_level(void) {
     pup.snake.tail = 379;
     pup.snake.grow = 0;
     pup.snake.direction = SNAKE_RIGHT;
+    pup.snake.updated = clock();
+    pup.snake.speed = 6;
     
 	pup.screen[pup.snake.head] = pup.snake.direction;
 	pup.screen[pup.snake.tail] = pup.snake.direction;
@@ -206,7 +216,6 @@ void game_intro(void) {
 
 void game_play(void) {
 	unsigned int i = 0;
-	unsigned int sleeps = 710;
 
 	pup.lives = 3;
 	pup.score = 0;
@@ -223,7 +232,7 @@ void game_play(void) {
 		} else if (JOY_RIGHT(fat) && pup.snake.direction != SNAKE_LEFT) {
 			pup.snake.direction = SNAKE_RIGHT;
 		}
-		if (update ()) {
+		if (update (clock())) {
 			pup.lives -= 1;
 			updateScoreLives();
 			sleep(1);
@@ -232,7 +241,6 @@ void game_play(void) {
 			}
 			init_level();
 		}
-		for ( i = 0; i<sleeps ; i++) {}
 	}
 }
 
