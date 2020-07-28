@@ -1,4 +1,4 @@
-CFLAGS=-O
+CFLAGS=-Os
 DEPS=
 
 snake.prg: main.s main.o
@@ -11,5 +11,5 @@ d64: snake.prg
 	cc65 $(CFLAGS) -t c64 -o $@ $<
 clean:
 	rm -f main.o main.s charsnake64.d64
-test: charsnake64.d64
+test: d64
 	x64 +warp charsnake64.d64
