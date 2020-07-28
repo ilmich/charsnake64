@@ -17,15 +17,15 @@
 #define APPLE 69
 #define WALL 90
 
+#define GAME_INTRO 1
+#define GAME_PLAY 2
+
 #define SNAKE_RIGHT 1
 #define SNAKE_DOWN 40
 #define SNAKE_LEFT -1
 #define SNAKE_UP -40
 
-#define GAME_INTRO 1
-#define GAME_PLAY 2
-
-unsigned char intro[] = {	 
+unsigned char intro[] = {
 	0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,
 	0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,
 	0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,
@@ -80,23 +80,23 @@ unsigned int level1[] = {
 		};
 
 typedef struct  {
-	int head;
-	int tail;
+	unsigned int head;
+	unsigned int tail;
 	unsigned char grow;
-	int direction;
-    clock_t speed; //in jiffy clock cicles
-    clock_t updated; //in jiffy clock cicles
+	signed char direction;
+	clock_t speed; //in jiffy clock cicles
+	clock_t updated; //in jiffy clock cicles
 } snake_t;
 
 struct {
 	snake_t snake;
 	unsigned int score;
-	unsigned char lives;
+	char lives;
 	signed char screen[1000];
-} pup = { {},0,3 };
+} pup;
 
 void build_level(unsigned int level[], int size) {
-	int i=0;
+	unsigned int i=0;
 	for (; i < size;i++) {
 		POKE(VIDEO_MEMORY + level[i], 102);
 		pup.screen[level[i]] = WALL;
@@ -106,56 +106,58 @@ void build_level(unsigned int level[], int size) {
 char lives[][4] = {" ", "# ", "## ", "###"};
 
 void updateScoreLives(void) {
-	char str[20];	
-	
+	char str[15];
+
 	sprintf(str,"score:%06d",pup.score);
 	cputsxy(0,0,str);
 	cputsxy(0,1,"lives:");
 	cputsxy(6,1, lives[pup.lives]);
 }
 
-void new_apple(void) {
-	int i;
-	for (;;) {
-		i=rand() % (1000 - 160);
-		if (pup.screen[i + 160] == EMPTY) {
-			POKE(VIDEO_MEMORY + 160 + i, 83);
-			POKE(COLOR_RAM + 160 + i, COLOR_YELLOW);
-			pup.screen[i + 160] = APPLE;
-			return;
+void new_apple(unsigned char count) {
+	unsigned int i,c=0;
+	for (;c<count;) {
+		i= (rand() % 840) + 160; // 1000-160
+		if (pup.screen[i] == EMPTY) {
+			POKE(VIDEO_MEMORY+i, 83);
+			POKE(COLOR_RAM+i, COLOR_YELLOW);
+			pup.screen[i] = APPLE;
+			++c;
 		}
 	}
 }
 
-int update(clock_t jiffy) {	
-	int go_to = pup.snake.head + pup.snake.direction;
+char update(clock_t jiffy) {
+	unsigned int go_to = 0;
 
-    if ((jiffy - pup.snake.updated) < pup.snake.speed) {
-        return 0;
-    }
+	if ((jiffy - pup.snake.updated) < pup.snake.speed) {
+		return 0;
+	}
 
-    pup.snake.updated = clock();
+	go_to = pup.snake.head + pup.snake.direction;
+	pup.snake.updated = clock();
 	//check events 
-	if (pup.screen[go_to] != EMPTY && pup.screen[go_to] != APPLE) { // collision with body or wall
-		return 1;
-	} else if (pup.screen[go_to] == APPLE) {
+	if (pup.screen[go_to] == APPLE) {
 		pup.snake.grow = 1;
 		pup.score += 10;
 		updateScoreLives();
-		new_apple();
+		new_apple(1);
+	} else if (pup.screen[go_to] != EMPTY) {
+		return 1;
 	}
 
+
 	// set the change of direction
-	pup.screen[pup.snake.head]=pup.snake.direction;	
+	pup.screen[pup.snake.head]=pup.snake.direction;
 	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_BODY);
 	POKE(COLOR_RAM + pup.snake.head, COLOR_BROWN);
 
 	//move head
-	pup.snake.head = go_to;	
+	pup.snake.head = go_to;
 	pup.screen[pup.snake.head]=pup.snake.direction;
 	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
 	POKE(COLOR_RAM + pup.snake.head, COLOR_GREEN);
-		
+
 	if (pup.snake.grow == 1) {
 		pup.snake.grow = 0;
 		return 0;
@@ -172,55 +174,48 @@ int update(clock_t jiffy) {
 }
 
 void init_level(void) {
-	int x;    
-	
+	unsigned int x = 0;
+
 	clrscr();
 	VIC.addr = 0x15;
-	
+
 	for (x=0;x<1000;x++) {
 		pup.screen[x]=EMPTY;
 	}
 	build_level(level1, sizeof(level1) / 2);
 
-    pup.snake.head = 380;
-    pup.snake.tail = 379;
-    pup.snake.grow = 0;
-    pup.snake.direction = SNAKE_RIGHT;
-    pup.snake.updated = clock();
-    pup.snake.speed = 6;
-    
+	pup.snake.head = 380;
+	pup.snake.tail = 379;
+	pup.snake.grow = 0;
+	pup.snake.direction = SNAKE_RIGHT;
+	pup.snake.updated = clock();
+	pup.snake.speed = 6;
+
 	pup.screen[pup.snake.head] = pup.snake.direction;
 	pup.screen[pup.snake.tail] = pup.snake.direction;
 	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
 	POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
 
-	new_apple();
-	new_apple();
-	new_apple();
-	new_apple();
-	
+	new_apple(4);
 	updateScoreLives();
 }
 
 void game_intro(void) {
-	
 	memcpy( (unsigned char*)VIDEO_MEMORY, intro, 1024);
 	VIC.addr = 0x17;
 	for (;;) {
 		char fat = joy_read(JOY_2);
 		if (JOY_BTN_1(fat)) {
 			return;
-		}	
+		}
 	}
 }
 
 void game_play(void) {
-	unsigned int i = 0;
-
 	pup.lives = 3;
 	pup.score = 0;
 	init_level();
-	
+
 	for (;;) {
 		char fat = joy_read(JOY_2);
 		if (JOY_UP(fat) && pup.snake.direction != SNAKE_DOWN) {
@@ -233,7 +228,7 @@ void game_play(void) {
 			pup.snake.direction = SNAKE_RIGHT;
 		}
 		if (update (clock())) {
-			pup.lives -= 1;
+			--pup.lives;
 			updateScoreLives();
 			sleep(1);
 			if (pup.lives == 0) {
@@ -247,7 +242,7 @@ void game_play(void) {
 int main(void) {
 	VIC.bordercolor = COLOR_BLACK;
 	VIC.bgcolor0 = COLOR_BLACK;
-	
+
 	joy_install (joy_static_stddrv);
 	for (;;) {
 		game_intro();
