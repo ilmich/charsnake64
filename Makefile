@@ -1,4 +1,4 @@
-CFLAGS=-Os
+CFLAGS=-Osr -Cl
 DEPS=
 
 snake.prg: main.s main.o
