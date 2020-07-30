@@ -13,9 +13,9 @@
 #define SNAKE_TAIL 43
 #define SNAKE_BODY 87
 
-#define EMPTY 0
-#define APPLE 69
-#define WALL 90
+#define EMPTY 32
+#define APPLE 83
+#define WALL 102
 
 #define GAME_INTRO 1
 #define GAME_PLAY 2
@@ -53,38 +53,66 @@ unsigned char intro[] = {
 	0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20	
 };
 
-unsigned int level1[] = {
-		80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,
-		80 + 40, 80 +40 + 39,
-		80 + (40 * 2), 80 + (40*2) + 39,
-		80 + (40 * 3), 80 + (40*3) + 39,
-		80 + (40 * 4), 80 + (40*4) + 39,
-		80 + (40 * 5), 80 + (40*5) + 39,
-		80 + (40 * 6), 80 + (40*6) + 39,
-		80 + (40 * 7), 80 + (40*7) + 39,
-		80 + (40 * 8), 80 + (40*8) + 39,
-		80 + (40 * 9), 80 + (40*9) + 39,
-		80 + (40 * 10), 80 + (40*10) + 39,
-		80 + (40 * 11), 80 + (40*11) + 39,
-		80 + (40 * 12), 80 + (40*12) + 39,
-		80 + (40 * 13), 80 + (40*13) + 39,
-		80 + (40 * 14), 80 + (40*14) + 39,
-		80 + (40 * 15), 80 + (40*15) + 39,
-		80 + (40 * 16), 80 + (40*16) + 39,
-		80 + (40 * 17), 80 + (40*17) + 39,
-		80 + (40 * 18), 80 + (40*18) + 39,
-		80 + (40 * 19), 80 + (40*19) + 39,
-		80 + (40 * 20), 80 + (40*20) + 39,
-		80 + (40 * 21), 80 + (40*21) + 39,
-		960,961,962,963,964,965,966,967,968,969,970,971,972,973,974,975,976,977,978,979,980,981,982,983,984,985,986,987,988,989,990,991,992,993,994,995,996,997,998,999
-		};
+unsigned char level1[] = {
+	0xff,40,102,
+    0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102, 0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102, 0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102, 0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+    0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+    0xff,40,102,    
+	0x00,0x00,0x00
+};
+
+unsigned char level2[] = {
+	0xff,40,102,    
+	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20, 0xff,1,102,
+   	0xff,1,102, 0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102, 0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+    0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+    0xff,40,102,    
+	0x00,0x00,0x00
+};
 
 typedef struct  {
 	unsigned int head;
 	unsigned int tail;
 	unsigned char grow;
 	signed char direction;
-	clock_t speed; //in jiffy clock cicles
+    clock_t speed; //in jiffy clock cicles
 	clock_t updated; //in jiffy clock cicles
 } snake_t;
 
@@ -95,15 +123,28 @@ struct {
 	signed char screen[1000];
 } pup;
 
-void build_level(unsigned int level[], int size) {
-	unsigned int i=0;
-	for (; i < size;i++) {
-		POKE(VIDEO_MEMORY + level[i], 102);
-		pup.screen[level[i]] = WALL;
+char lives[][4] = {" ", "# ", "## ", "###"};
+
+void build_level(unsigned char data[]) {
+	unsigned int idx=0;
+    unsigned int vidx=80;
+	unsigned char code,count,chr;
+	
+    for (;;) {
+	    code = data[idx++];
+	    if (code == 0xff) {
+		count = data[idx++];
+		chr = data[idx++];
+		for (; count>0;count--) {
+		    POKE(VIDEO_MEMORY + vidx, chr);
+            pup.screen[vidx] = chr;            
+		    ++vidx;
+		}
+		continue;
+	    }
+	    break;
 	}
 }
-
-char lives[][4] = {" ", "# ", "## ", "###"};
 
 void updateScoreLives(void) {
 	char str[15];
@@ -114,15 +155,15 @@ void updateScoreLives(void) {
 	cputsxy(6,1, lives[pup.lives]);
 }
 
-void new_apple(unsigned char count) {
-	unsigned int i,c=0;
-	for (;c<count;) {
+void new_apple(void) {
+	unsigned int i;
+	for (;;) {
 		i= (rand() % 840) + 160; // 1000-160
 		if (pup.screen[i] == EMPTY) {
 			POKE(VIDEO_MEMORY+i, 83);
 			POKE(COLOR_RAM+i, COLOR_YELLOW);
 			pup.screen[i] = APPLE;
-			++c;
+            return;
 		}
 	}
 }
@@ -141,16 +182,15 @@ char update(clock_t jiffy) {
 		pup.snake.grow = 1;
 		pup.score += 10;
 		updateScoreLives();
-		new_apple(1);
+		new_apple();
 	} else if (pup.screen[go_to] != EMPTY) {
 		return 1;
 	}
 
-
-	// set the change of direction
-	pup.screen[pup.snake.head]=pup.snake.direction;
-	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_BODY);
-	POKE(COLOR_RAM + pup.snake.head, COLOR_BROWN);
+    // set the change of direction    
+    pup.screen[pup.snake.head]=pup.snake.direction;
+    POKE(COLOR_RAM + pup.snake.head, COLOR_BROWN);
+    POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_BODY);        
 
 	//move head
 	pup.snake.head = go_to;
@@ -182,7 +222,7 @@ void init_level(void) {
 	for (x=0;x<1000;x++) {
 		pup.screen[x]=EMPTY;
 	}
-	build_level(level1, sizeof(level1) / 2);
+	build_level(level1);
 
 	pup.snake.head = 380;
 	pup.snake.tail = 379;
@@ -196,11 +236,16 @@ void init_level(void) {
 	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
 	POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
 
-	new_apple(4);
+	new_apple();
+    new_apple();
+    new_apple();
+    new_apple();
+    
 	updateScoreLives();
 }
 
 void game_intro(void) {
+    clrscr();
 	memcpy( (unsigned char*)VIDEO_MEMORY, intro, 1024);
 	VIC.addr = 0x17;
 	for (;;) {
@@ -219,13 +264,13 @@ void game_play(void) {
 	for (;;) {
 		char fat = joy_read(JOY_2);
 		if (JOY_UP(fat) && pup.snake.direction != SNAKE_DOWN) {
-			pup.snake.direction = SNAKE_UP;
+			pup.snake.direction = SNAKE_UP;            
 		} else if (JOY_DOWN(fat) && pup.snake.direction != SNAKE_UP) {
-			pup.snake.direction = SNAKE_DOWN;
+			pup.snake.direction = SNAKE_DOWN;            
 		} else if (JOY_LEFT(fat) && pup.snake.direction != SNAKE_RIGHT) {
-			pup.snake.direction = SNAKE_LEFT;
+			pup.snake.direction = SNAKE_LEFT;            
 		} else if (JOY_RIGHT(fat) && pup.snake.direction != SNAKE_LEFT) {
-			pup.snake.direction = SNAKE_RIGHT;
+			pup.snake.direction = SNAKE_RIGHT;            
 		}
 		if (update (clock())) {
 			--pup.lives;
@@ -244,7 +289,7 @@ int main(void) {
 	VIC.bgcolor0 = COLOR_BLACK;
 
 	joy_install (joy_static_stddrv);
-	for (;;) {
+	for (;;) {	
 		game_intro();
 		game_play();
 	}
