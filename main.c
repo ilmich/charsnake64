@@ -14,7 +14,7 @@
 #define SNAKE_BODY 87
 
 #define EMPTY 32
-#define APPLE 83
+#define APPLE 88
 #define WALL 102
 
 #define GAME_INTRO 1
@@ -85,6 +85,7 @@ typedef struct  {
 	unsigned int tail;
 	unsigned char grow;
 	signed char direction;
+    signed char ch_direction;
     clock_t speed; //in jiffy clock cicles
 	clock_t updated; //in jiffy clock cicles
 } snake_t;
@@ -132,8 +133,8 @@ void new_apple(void) {
 	for (;;) {
 		i= (rand() % 840) + 160; // 1000-160
 		if (pup.screen[i] == EMPTY) {
-			POKE(VIDEO_MEMORY+i, 83);
-			POKE(COLOR_RAM+i, COLOR_YELLOW);
+			POKE(VIDEO_MEMORY+i, 88);
+			POKE(COLOR_RAM+i, COLOR_RED);
 			pup.screen[i] = APPLE;
             return;
 		}
@@ -161,8 +162,13 @@ char update(clock_t jiffy) {
 
     // set the change of direction    
     pup.screen[pup.snake.head]=pup.snake.direction;
-    POKE(COLOR_RAM + pup.snake.head, COLOR_BROWN);
-    POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_BODY);        
+    POKE(COLOR_RAM + pup.snake.head, COLOR_GREEN);
+    if (pup.snake.ch_direction) {
+        POKE(VIDEO_MEMORY + pup.snake.head, pup.snake.ch_direction);
+        pup.snake.ch_direction =0;
+    } else {
+        POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_BODY);
+    }
 
 	//move head
 	pup.snake.head = go_to;
@@ -201,7 +207,7 @@ void init_level(void) {
 	pup.snake.grow = 0;
 	pup.snake.direction = SNAKE_RIGHT;
 	pup.snake.updated = clock();
-	pup.snake.speed = 6;
+	pup.snake.speed = 5;
 
 	pup.screen[pup.snake.head] = pup.snake.direction;
 	pup.screen[pup.snake.tail] = pup.snake.direction;
@@ -228,22 +234,70 @@ void game_intro(void) {
 	}
 }
 
+void control_snake(void) {        
+		char fat = joy_read(JOY_2);
+        
+        if (pup.snake.direction == SNAKE_RIGHT) {
+            if (fat == JOY_UP_MASK) {
+                pup.snake.ch_direction = 126;
+                pup.snake.direction = SNAKE_UP;
+                return;
+            }
+            if (fat == JOY_DOWN_MASK) {
+                pup.snake.ch_direction = 123;
+                pup.snake.direction = SNAKE_DOWN;
+                return;
+            }
+        }
+        
+        if (pup.snake.direction == SNAKE_LEFT) {
+            if (fat == JOY_UP_MASK) {
+                pup.snake.ch_direction = 124;
+                pup.snake.direction = SNAKE_UP;
+                return;
+            }
+            if (fat == JOY_DOWN_MASK) {
+                pup.snake.ch_direction = 108;
+                pup.snake.direction = SNAKE_DOWN;
+                return;
+            }
+        }
+        
+        if (pup.snake.direction == SNAKE_DOWN) {
+            if (fat == JOY_RIGHT_MASK) {
+                pup.snake.ch_direction = 124;
+                pup.snake.direction = SNAKE_RIGHT;
+                return;
+            }
+            if (fat == JOY_LEFT_MASK) {
+                pup.snake.ch_direction = 126;
+                pup.snake.direction = SNAKE_LEFT;
+                return;
+            }
+        }
+        
+        if (pup.snake.direction == SNAKE_UP) {
+            if (fat == JOY_RIGHT_MASK) {
+                pup.snake.ch_direction = 108;
+                pup.snake.direction = SNAKE_RIGHT;
+                return;
+            }
+            if (fat == JOY_LEFT_MASK) {
+                pup.snake.ch_direction = 123;
+                pup.snake.direction = SNAKE_LEFT;
+                return;
+            }
+        }       
+
+}
+
 void game_play(void) {
 	pup.lives = 3;
 	pup.score = 0;
 	init_level();
 
 	for (;;) {
-		char fat = joy_read(JOY_2);
-		if (JOY_UP(fat) && pup.snake.direction != SNAKE_DOWN) {
-			pup.snake.direction = SNAKE_UP;            
-		} else if (JOY_DOWN(fat) && pup.snake.direction != SNAKE_UP) {
-			pup.snake.direction = SNAKE_DOWN;            
-		} else if (JOY_LEFT(fat) && pup.snake.direction != SNAKE_RIGHT) {
-			pup.snake.direction = SNAKE_LEFT;            
-		} else if (JOY_RIGHT(fat) && pup.snake.direction != SNAKE_LEFT) {
-			pup.snake.direction = SNAKE_RIGHT;            
-		}
+        control_snake();   
 		if (update (clock())) {
 			--pup.lives;
 			updateScoreLives();
