@@ -25,6 +25,11 @@
 #define SNAKE_LEFT -1
 #define SNAKE_UP -40
 
+#define ACTION_SNAKE_NOTHING 0
+#define ACTION_SNAKE_DEAD 1
+#define ACTION_SNAKE_LEVELUP 2
+
+
 unsigned char intro[] = {
 	0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,
 	0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,
@@ -80,10 +85,67 @@ unsigned char level1[] = {
 	0x00,0x00,0x00
 };
 
+unsigned char level2[] = {
+	0xff,40,102,
+    0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+   	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+   	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+   	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+   	0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+    0xff,1,102,	0xff,18,0x20, 0xff,1,102,0xff,19,0x20,0xff,1,102,
+    0xff,40,102,    
+	0x00,0x00,0x00
+};
+
+unsigned char level3[] = {
+	0xff,40,102,
+    0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102, 0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,5,0x20, 0xff,28,102, 0xff,5,0x20, 0xff,1,102,
+   	0xff,1,102, 0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,5,0x20, 0xff,28,102, 0xff,5,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102, 0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+   	0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+    0xff,1,102,	0xff,38,0x20, 0xff,1,102,
+    0xff,40,102,    
+	0x00,0x00,0x00
+};
+
+void * levels[] = {&level1, &level2, &level3};
+
 typedef struct  {
 	unsigned int head;
 	unsigned int tail;
 	unsigned char grow;
+    unsigned char apples;
 	signed char direction;
     signed char ch_direction;
     clock_t speed; //in jiffy clock cicles
@@ -94,6 +156,7 @@ struct {
 	snake_t snake;
 	unsigned int score;
 	char lives;
+    char level;
 	signed char screen[1000];
 } pup;
 
@@ -128,7 +191,7 @@ void updateScoreLives(void) {
 	cputsxy(6,1, lives[pup.lives]);
 }
 
-void new_apple(void) {
+void new_apple() {
 	unsigned int i;
 	for (;;) {
 		i= (rand() % 840) + 160; // 1000-160
@@ -141,23 +204,41 @@ void new_apple(void) {
 	}
 }
 
+void open_door(void) {
+    POKE(VIDEO_MEMORY + (40 * 12 ) + 39,80);    
+    POKE(VIDEO_MEMORY + (40 * 13 ) + 39,103);
+    POKE(VIDEO_MEMORY + (40 * 14 ) + 39,103);
+    POKE(VIDEO_MEMORY + (40 * 15 ) + 39,122);
+    pup.screen[ (40*12) + 39] = 80;
+    pup.screen[ (40*13) + 39] = 103;
+    pup.screen[ (40*14) + 39] = 103;
+    pup.screen[ (40*15) + 39] = 122;
+}
+
 char update(clock_t jiffy) {
 	unsigned int go_to = 0;
 
 	if ((jiffy - pup.snake.updated) < pup.snake.speed) {
-		return 0;
+		return ACTION_SNAKE_NOTHING;
 	}
 
 	go_to = pup.snake.head + pup.snake.direction;
 	pup.snake.updated = clock();
 	//check events 
 	if (pup.screen[go_to] == APPLE) {
-		pup.snake.grow = 1;
+		pup.snake.grow += 3;
 		pup.score += 10;
+        ++pup.snake.apples;
+        // TODO make speed calculation better
+        pup.snake.speed = 6 - pup.snake.apples/10;
 		updateScoreLives();
-		new_apple();
-	} else if (pup.screen[go_to] != EMPTY) {
-		return 1;
+        if (pup.snake.apples == 30) {
+            open_door();
+        }		
+	} else if (pup.screen[go_to] == 80 || pup.screen[go_to] == 103 || pup.screen[go_to] == 122) {        
+        return ACTION_SNAKE_LEVELUP;
+    } else if (pup.screen[go_to] != EMPTY) {        
+        return ACTION_SNAKE_DEAD;
 	}
 
     // set the change of direction    
@@ -176,9 +257,9 @@ char update(clock_t jiffy) {
 	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
 	POKE(COLOR_RAM + pup.snake.head, COLOR_GREEN);
 
-	if (pup.snake.grow == 1) {
-		pup.snake.grow = 0;
-		return 0;
+	if (pup.snake.grow > 0) {
+		--pup.snake.grow;
+		return ACTION_SNAKE_NOTHING;
 	}
 
 	go_to = pup.screen[pup.snake.tail];
@@ -187,9 +268,11 @@ char update(clock_t jiffy) {
 	pup.snake.tail += go_to;
 	POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
 
-	return 0;
+	return ACTION_SNAKE_NOTHING;
 
 }
+
+
 
 void init_level(void) {
 	unsigned int x = 0;
@@ -200,25 +283,25 @@ void init_level(void) {
 	for (x=0;x<1000;x++) {
 		pup.screen[x]=EMPTY;
 	}
-	build_level(level1);
+	build_level(levels[ (pup.level-1) % (sizeof(levels)/2)]);
 
-	pup.snake.head = 380;
-	pup.snake.tail = 379;
+	pup.snake.head = 460;
+	pup.snake.tail = 459;
 	pup.snake.grow = 0;
 	pup.snake.direction = SNAKE_RIGHT;
 	pup.snake.updated = clock();
-	pup.snake.speed = 5;
+	pup.snake.speed = 6;
+    pup.snake.apples = 0;
 
 	pup.screen[pup.snake.head] = pup.snake.direction;
 	pup.screen[pup.snake.tail] = pup.snake.direction;
 	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
 	POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
 
-	new_apple();
-    new_apple();
-    new_apple();
-    new_apple();
-    
+    for (x=0;x<30;x++) {
+        new_apple();
+    }
+
 	updateScoreLives();
 }
 
@@ -292,15 +375,22 @@ void control_snake(void) {
 }
 
 void game_play(void) {
+    char status = 0;
 	pup.lives = 3;
 	pup.score = 0;
+    pup.level = 1;
 	init_level();
 
 	for (;;) {
         control_snake();   
-		if (update (clock())) {
-			--pup.lives;
-			updateScoreLives();
+		if (status = update (clock())) {
+            if (status == ACTION_SNAKE_DEAD) {
+                --pup.lives;
+                updateScoreLives();
+            }
+            if (status == ACTION_SNAKE_LEVELUP) {
+                pup.level++;                
+            }
 			sleep(1);
 			if (pup.lives == 0) {
 				return;
