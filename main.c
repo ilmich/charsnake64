@@ -74,16 +74,18 @@ void open_door(void) {
 
 char update(clock_t jiffy) {
 	unsigned int go_to;
-
+    unsigned char ch_go_to;
+    
 	if ((jiffy - pup.snake.updated) < pup.snake.speed) {
 		return ACTION_SNAKE_NOTHING;
 	}
 
 	go_to = pup.snake.head + pup.snake.direction;
+    ch_go_to = pup.screen[go_to];
 	pup.snake.updated = clock();
 	//check events 
-	if (pup.screen[go_to] == APPLE) {
-		pup.snake.grow += 3;
+	if (ch_go_to == APPLE) {
+		pup.snake.grow += 4;
 		pup.score += 10;
         ++pup.snake.apples;
         // TODO make speed calculation better
@@ -92,9 +94,9 @@ char update(clock_t jiffy) {
         if (pup.snake.apples == 24) {
             open_door();
         }		
-	} else if (pup.screen[go_to] == 80 || pup.screen[go_to] == 103 || pup.screen[go_to] == 122) {        
+	} else if (ch_go_to == 80 || ch_go_to == 103 || ch_go_to == 122) {        
         return ACTION_SNAKE_LEVELUP;
-    } else if (pup.screen[go_to] != EMPTY) {        
+    } else if (ch_go_to != EMPTY) {        
         return ACTION_SNAKE_DEAD;
 	}
 

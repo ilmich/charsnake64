@@ -166,7 +166,7 @@ typedef struct  {
     unsigned char apples;
 	signed char direction;
     unsigned char body_chr;
-    clock_t speed; //in jiffy clock cicles
+    unsigned char speed; //in jiffy clock cicles
 	clock_t updated; //in jiffy clock cicles
 } snake_t;
 
