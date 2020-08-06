@@ -29,11 +29,21 @@ void build_level(unsigned char *data) {
 	}
 }
 
-void updateScoreLives(void) {
-	char str[15];
+void update_score(void) {
+	unsigned char str[15];
 
 	sprintf(str,"score:%06d",pup.score);
-	cputsxy(0,0,str);
+	cputsxy(0,0,str);	
+}
+
+void update_level(void) {
+	unsigned char str[15];
+
+	sprintf(str,"level:%02d",pup.level);
+	cputsxy(32,0,str);	
+}
+
+void update_lives(void) {
 	cputsxy(0,1,"lives:");
 	cputsxy(6,1, lives[pup.lives]);
 }
@@ -63,7 +73,7 @@ void open_door(void) {
 }
 
 char update(clock_t jiffy) {
-	unsigned int go_to = 0;
+	unsigned int go_to;
 
 	if ((jiffy - pup.snake.updated) < pup.snake.speed) {
 		return ACTION_SNAKE_NOTHING;
@@ -78,7 +88,7 @@ char update(clock_t jiffy) {
         ++pup.snake.apples;
         // TODO make speed calculation better
         pup.snake.speed = 6 - pup.snake.apples/10;
-		updateScoreLives();
+		update_score();
         if (pup.snake.apples == 30) {
             open_door();
         }		
@@ -117,19 +127,21 @@ char update(clock_t jiffy) {
 
 }
 
-
-
 void init_level(void) {
-	unsigned int x = 0;
+	unsigned char x;
 
 	clrscr();
 	VIC.addr = 0x15;
 
-	for (x=0;x<1000;x++) {
+	do {
 		pup.screen[x]=EMPTY;
-	}
+        pup.screen[256 + x]=EMPTY;
+        pup.screen[512 + x]=EMPTY;
+        pup.screen[768 + x]=EMPTY;        
+	} while (++x == 0);
+    
 	build_level(levels[ (pup.level-1) % (sizeof(levels)/2)]);    
-
+    update_level();
 	pup.snake.head = 460;
 	pup.snake.tail = 459;
 	pup.snake.grow = 0;
@@ -143,16 +155,17 @@ void init_level(void) {
 	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
 	POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
 
-    for (x=0;x<30;x++) {
+    for (x=0; x<30; x++) {
         new_apple();
-    }
-
-	updateScoreLives();
+    }	
+    
+    update_score();
+    update_lives();
 }
 
-void game_intro(void) {
-    clrscr();
-	memcpy( (unsigned char*)VIDEO_MEMORY, intro, 1024);
+void game_intro(void) {    
+    clrscr();    
+    memcpy( (unsigned char*)VIDEO_MEMORY, intro, 1024);    
 	VIC.addr = 0x17;
 	for (;;) {
 		char fat = joy_read(JOY_2);
@@ -225,7 +238,7 @@ void sleep(char sec) {
 }
 
 void game_play(void) {
-    char status = 0;
+    char status;
 	pup.lives = 3;
 	pup.score = 0;
     pup.level = 1;
@@ -236,7 +249,7 @@ void game_play(void) {
 		if (status = update (clock())) {
             if (status == ACTION_SNAKE_DEAD) {
                 --pup.lives;
-                updateScoreLives();
+                update_lives();
             }
             if (status == ACTION_SNAKE_LEVELUP) {
                 pup.level++;                

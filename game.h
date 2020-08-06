@@ -175,7 +175,7 @@ struct {
 	unsigned int score;
 	char lives;
     char level;
-	signed char screen[1000];
+	signed char screen[1024];
 } pup;
 
 char lives[][4] = {" ", "# ", "## ", "###"};
