@@ -87,9 +87,9 @@ char update(clock_t jiffy) {
 		pup.score += 10;
         ++pup.snake.apples;
         // TODO make speed calculation better
-        pup.snake.speed = 6 - pup.snake.apples/10;
+        pup.snake.speed = 7 - pup.snake.apples/8;
 		update_score();
-        if (pup.snake.apples == 30) {
+        if (pup.snake.apples == 24) {
             open_door();
         }		
 	} else if (pup.screen[go_to] == 80 || pup.screen[go_to] == 103 || pup.screen[go_to] == 122) {        
@@ -147,7 +147,7 @@ void init_level(void) {
 	pup.snake.grow = 0;
 	pup.snake.direction = SNAKE_RIGHT;
 	pup.snake.updated = clock();
-	pup.snake.speed = 6;
+	pup.snake.speed = 7;
     pup.snake.apples = 0;
 
 	pup.screen[pup.snake.head] = pup.snake.direction;
@@ -155,7 +155,9 @@ void init_level(void) {
 	POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
 	POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
 
-    for (x=0; x<30; x++) {
+    for (x=0; x<8; x++) {
+        new_apple();
+        new_apple();
         new_apple();
     }	
     
@@ -164,7 +166,7 @@ void init_level(void) {
 }
 
 void game_intro(void) {    
-    clrscr();    
+    clrscr();
     memcpy( (unsigned char*)VIDEO_MEMORY, intro, 1024);    
 	VIC.addr = 0x17;
 	for (;;) {

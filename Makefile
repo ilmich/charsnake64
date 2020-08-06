@@ -1,4 +1,4 @@
-CFLAGS=-Osr -Cl
+CFLAGS=-Osr -Cl 
 DEPS=
 
 snake.prg: main.s main.o
@@ -8,7 +8,7 @@ d64: snake.prg
 %.o: %.s
 	ca65 -t c64 -o $@ $<
 %.s: %.c game.h
-	cc65 $(CFLAGS) -t c64 -o $@ $<
+	cc65 $(CFLAGS) --add-source -t c64 -o $@ $<
 clean:
 	rm -f main.o main.s charsnake64.d64
 test: d64
