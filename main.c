@@ -144,8 +144,8 @@ void init_level(void) {
     
 	build_level(levels[ (pup.level-1) % (sizeof(levels)/2)]);    
     update_level();
-	pup.snake.head = 460;
-	pup.snake.tail = 459;
+	pup.snake.head = 530;
+	pup.snake.tail = 529;
 	pup.snake.grow = 0;
 	pup.snake.direction = SNAKE_RIGHT;
 	pup.snake.updated = clock();
