@@ -33,14 +33,14 @@ void update_score(void) {
 	unsigned char str[15];
 
 	sprintf(str,"score:%06d",pup.score);
-	cputsxy(0,0,str);	
+	cputsxy(0,0,str);
 }
 
 void update_level(void) {
 	unsigned char str[15];
 
 	sprintf(str,"level:%02d",pup.level);
-	cputsxy(32,0,str);	
+	cputsxy(32,0,str);
 }
 
 void update_lives(void) {
@@ -72,11 +72,11 @@ void open_door(void) {
     pup.screen[ (40*15) + 39] = 122;
 }
 
-char update(clock_t jiffy) {
+char update() {
 	unsigned int go_to;
     unsigned char ch_go_to;
     
-	if ((jiffy - pup.snake.updated) < pup.snake.speed) {
+	if ((clock() - pup.snake.updated) < pup.snake.speed) {
 		return ACTION_SNAKE_NOTHING;
 	}
 
@@ -250,7 +250,7 @@ void game_play(void) {
 
 	for (;;) {
         control_snake();   
-		if (status = update (clock())) {
+		if (status = update ()) {
             if (status == ACTION_SNAKE_DEAD) {
                 --pup.lives;
                 update_lives();
