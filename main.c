@@ -20,7 +20,7 @@ void build_level(unsigned char *data) {
             chr = *data++;
             for (; count>0;count--) {
                 POKE(VIDEO_MEMORY + vidx, chr);
-                pup.screen[vidx] = chr;
+                screen[vidx] = chr;
                 ++vidx;
             }
             continue;
@@ -52,10 +52,10 @@ void new_apple() {
     unsigned int i;
     for (;;) {
         i= (rand() % 840) + 160; // 1000-160
-        if (pup.screen[i] == EMPTY) {
+        if (screen[i] == EMPTY) {
             POKE(VIDEO_MEMORY+i, APPLE);
             POKE(COLOR_RAM+i, COLOR_RED);
-            pup.screen[i] = APPLE;
+            screen[i] = APPLE;
             return;
         }
     }
@@ -66,10 +66,10 @@ void open_door(void) {
     POKE(VIDEO_MEMORY + (40 * 13 ) + 39,103);
     POKE(VIDEO_MEMORY + (40 * 14 ) + 39,103);
     POKE(VIDEO_MEMORY + (40 * 15 ) + 39,122);
-    pup.screen[ (40*12) + 39] = 80;
-    pup.screen[ (40*13) + 39] = 103;
-    pup.screen[ (40*14) + 39] = 103;
-    pup.screen[ (40*15) + 39] = 122;
+    screen[ (40*12) + 39] = 80;
+    screen[ (40*13) + 39] = 103;
+    screen[ (40*14) + 39] = 103;
+    screen[ (40*15) + 39] = 122;
 }
 
 char update() {
@@ -81,7 +81,7 @@ char update() {
     }
 
     go_to = pup.snake.head + pup.snake.direction;
-    ch_go_to = pup.screen[go_to];
+    ch_go_to = screen[go_to];
     pup.snake.updated = clock();
     //check events 
     if (ch_go_to == APPLE) {
@@ -101,7 +101,7 @@ char update() {
     }
 
     // set the change of direction
-    pup.screen[pup.snake.head]=pup.snake.direction;
+    screen[pup.snake.head]=pup.snake.direction;
     POKE(COLOR_RAM + pup.snake.head, COLOR_GREEN);
     POKE(VIDEO_MEMORY + pup.snake.head, pup.snake.body_chr);
     if (pup.snake.body_chr!= SNAKE_BODY) {
@@ -110,7 +110,7 @@ char update() {
 
     //move head
     pup.snake.head = go_to;
-    pup.screen[pup.snake.head]=pup.snake.direction;
+    screen[pup.snake.head]=pup.snake.direction;
     POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
     POKE(COLOR_RAM + pup.snake.head, COLOR_GREEN);
 
@@ -119,8 +119,8 @@ char update() {
         return ACTION_SNAKE_NOTHING;
     }
 
-    go_to = pup.screen[pup.snake.tail];
-    pup.screen[pup.snake.tail]=EMPTY;
+    go_to = screen[pup.snake.tail];
+    screen[pup.snake.tail]=EMPTY;
     POKE(VIDEO_MEMORY + pup.snake.tail, 32);
     pup.snake.tail += go_to;
     POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
@@ -136,7 +136,7 @@ void init_level(void) {
     VIC.addr = 0x15;
 
     do {
-        pup.screen[x]=EMPTY;
+        screen[x]=EMPTY;
     } while (++x < 1024);
 
     build_level(levels[ (pup.level-1) % (sizeof(levels)/2)]);    
@@ -149,8 +149,8 @@ void init_level(void) {
     pup.snake.speed = 7;
     pup.snake.apples = 0;
 
-    pup.screen[pup.snake.head] = pup.snake.direction;
-    pup.screen[pup.snake.tail] = pup.snake.direction;
+    screen[pup.snake.head] = pup.snake.direction;
+    screen[pup.snake.tail] = pup.snake.direction;
     POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
     POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
 
@@ -164,8 +164,8 @@ void init_level(void) {
 
 void game_intro(void) {
     clrscr();
-    memcpy( (unsigned char*)VIDEO_MEMORY, intro, 1024);
-    VIC.addr = 0x17;
+    memcpy( (unsigned char*)VIDEO_MEMORY + 120, intro_packed, sizeof(intro_packed));
+    VIC.addr = 0x15;
     for (;;) {
         char fat = joy_read(JOY_2);
         if (JOY_BTN_1(fat)) {
