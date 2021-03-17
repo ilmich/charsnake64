@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <peekpoke.h>
-#include <time.h>
 
 #include "game.h"
 
@@ -28,6 +27,40 @@ void build_level(unsigned char *data) {
         break;
     }
 }
+
+unsigned char frames;
+
+void raster_routine(void) {
+    asm ("dec $d019");//        ; acknowledge IRQ
+    frames++;
+    asm ("jmp $ea31");//        ; return to kernel interrupt routine
+}
+
+void raster_irq(void) {
+    asm ("sei");//      ; set interrupt disable flag
+    asm ("lda #$7f");// ; $7f = %01111111
+    asm ("sta $dc0d");//; Turn off CIAs Timer interrupts
+    asm ("sta $dd0d");
+
+    asm ("lda #$01");// ; Set Interrupt Request Mask...
+    asm ("sta $d01a");//; ...we want IRQ by Rasterbeam
+
+    asm ("lda #<%v", raster_routine);//; point IRQ Vector to our custom irq routine
+    asm ("ldx #>%v", raster_routine);
+    asm ("sta $314");//   ; store in $314/$315
+    asm ("stx $315");
+
+    asm ("lda #$18");// ; trigger first interrupt at row zero
+    asm ("sta $d012");
+
+    asm ("lda $d011");//; Bit#0 of $d011 is basically...
+    asm ("and #$7f");// ; ...the 9th Bit for $d012
+    asm ("sta $d011");//; we need to make sure it is set to zero 
+
+    asm ("cli");//      ; clear interrupt disable flag
+    asm ("rts");
+}
+
 
 void update_score(void) {
     unsigned char str[15];
@@ -76,20 +109,22 @@ char update() {
     unsigned int go_to;
     unsigned char ch_go_to;
 
-    if ((clock() - pup.snake.updated) < pup.snake.speed) {
+    if ((frames - pup.snake.updated) < pup.snake.speed) {
         return ACTION_SNAKE_NOTHING;
     }
 
     go_to = pup.snake.head + pup.snake.direction;
     ch_go_to = screen[go_to];
-    pup.snake.updated = clock();
+    pup.snake.updated = frames;
     //check events 
     if (ch_go_to == APPLE) {
         pup.snake.grow += 4;
         pup.score += 10;
         ++pup.snake.apples;
         // TODO make speed calculation better
-        pup.snake.speed = 7 - pup.snake.apples/8;
+        if (pup.snake.apples % 8 == 0) {
+            pup.snake.speed = 6 - pup.snake.apples/8;
+        }
         update_score();
         if (pup.snake.apples == 24) {
             open_door();
@@ -139,14 +174,14 @@ void init_level(void) {
         screen[x]=EMPTY;
     } while (++x < 1024);
 
-    build_level(levels[ (pup.level-1) % (sizeof(levels)/2)]);    
+    build_level(levels[ (pup.level-1) % (sizeof(levels)/2)]);
     update_level();
     pup.snake.head = 530;
     pup.snake.tail = 529;
     pup.snake.grow = 0;
     pup.snake.direction = SNAKE_RIGHT;
-    pup.snake.updated = clock();
-    pup.snake.speed = 7;
+    pup.snake.updated = frames; 
+    pup.snake.speed = 6;
     pup.snake.apples = 0;
 
     screen[pup.snake.head] = pup.snake.direction;
@@ -232,8 +267,8 @@ void control_snake(void) {
 }
 
 void sleep(char cicles) {
-    clock_t end = clock() + cicles;
-    do { } while (clock() < end);
+    int end = frames + cicles;
+    do {} while (frames < end);
 }
 
 void game_play(void) {
@@ -253,7 +288,7 @@ void game_play(void) {
             if (status == ACTION_SNAKE_LEVELUP) {
                 pup.level++;
             }
-            sleep(60);
+            sleep(30);
             if (pup.lives == 0) {
                 return;
             }
@@ -265,6 +300,8 @@ void game_play(void) {
 int main(void) {
     VIC.bordercolor = COLOR_BLACK;
     VIC.bgcolor0 = COLOR_BLACK;
+    
+    raster_irq();
 
     joy_install (joy_static_stddrv);
     for (;;) {
