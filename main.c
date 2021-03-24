@@ -19,7 +19,6 @@ void build_level(unsigned char *data) {
             chr = *data++;
             for (; count>0;count--) {
                 POKE(VIDEO_MEMORY + vidx, chr);
-                screen[vidx] = chr;
                 ++vidx;
             }
             continue;
@@ -84,25 +83,20 @@ void update_lives(void) {
 void new_apple() {
     unsigned int i;
     for (;;) {
-        i= (rand() % 840) + 160; // 1000-160
-        if (screen[i] == EMPTY) {
+        i= (rand() % 840) + 120; // 1000-160
+        if (PEEK(VIDEO_MEMORY+i) == EMPTY) {
             POKE(VIDEO_MEMORY+i, APPLE);
             POKE(COLOR_RAM+i, COLOR_RED);
-            screen[i] = APPLE;
             return;
         }
     }
 }
 
 void open_door(void) {
-    POKE(VIDEO_MEMORY + (40 * 12 ) + 39,80);    
+    POKE(VIDEO_MEMORY + (40 * 12 ) + 39,80);
     POKE(VIDEO_MEMORY + (40 * 13 ) + 39,103);
     POKE(VIDEO_MEMORY + (40 * 14 ) + 39,103);
     POKE(VIDEO_MEMORY + (40 * 15 ) + 39,122);
-    screen[ (40*12) + 39] = 80;
-    screen[ (40*13) + 39] = 103;
-    screen[ (40*14) + 39] = 103;
-    screen[ (40*15) + 39] = 122;
 }
 
 char update() {
@@ -111,10 +105,10 @@ char update() {
 
     if ((frames - pup.snake.updated) < pup.snake.speed) {
         return ACTION_SNAKE_NOTHING;
-    }
+    } 
 
     go_to = pup.snake.head + pup.snake.direction;
-    ch_go_to = screen[go_to];
+    ch_go_to = PEEK(VIDEO_MEMORY + go_to); 
     pup.snake.updated = frames;
     //check events 
     if (ch_go_to == APPLE) {
@@ -122,11 +116,15 @@ char update() {
         pup.score += 10;
         ++pup.snake.apples;
         // TODO make speed calculation better
-        if (pup.snake.apples % 8 == 0) {
-            pup.snake.speed = 6 - pup.snake.apples/8;
+        if (pup.snake.speed > 3) {
+            if (pup.snake.apples % 8 == 0) {
+                pup.snake.speed = 6 - pup.snake.apples/8;
+            }
         }
         update_score();
-        if (pup.snake.apples == 24) {
+        if (!pup.type)  {
+            new_apple();
+        } else if (pup.snake.apples == 24) {
             open_door();
         }
     } else if (ch_go_to == 80 || ch_go_to == 103 || ch_go_to == 122) {
@@ -135,8 +133,7 @@ char update() {
         return ACTION_SNAKE_DEAD;
     }
 
-    // set the change of direction
-    screen[pup.snake.head]=pup.snake.direction;
+    // set the change of direction    
     POKE(COLOR_RAM + pup.snake.head, COLOR_GREEN);
     POKE(VIDEO_MEMORY + pup.snake.head, pup.snake.body_chr);
     if (pup.snake.body_chr!= SNAKE_BODY) {
@@ -145,7 +142,6 @@ char update() {
 
     //move head
     pup.snake.head = go_to;
-    screen[pup.snake.head]=pup.snake.direction;
     POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
     POKE(COLOR_RAM + pup.snake.head, COLOR_GREEN);
 
@@ -154,10 +150,36 @@ char update() {
         return ACTION_SNAKE_NOTHING;
     }
 
-    go_to = screen[pup.snake.tail];
-    screen[pup.snake.tail]=EMPTY;
     POKE(VIDEO_MEMORY + pup.snake.tail, 32);
-    pup.snake.tail += go_to;
+    pup.snake.tail += pup.snake.tail_direction;
+    go_to = PEEK(VIDEO_MEMORY + pup.snake.tail);
+
+    if (pup.snake.tail_direction == SNAKE_RIGHT) {
+        if (go_to == 126) {
+            pup.snake.tail_direction = SNAKE_UP;
+        } else if (go_to == 123) {
+            pup.snake.tail_direction = SNAKE_DOWN;
+        }
+    } else if (pup.snake.tail_direction == SNAKE_UP) {
+        if (go_to == 108) {
+            pup.snake.tail_direction = SNAKE_RIGHT;
+        } else if (go_to == 123) {
+            pup.snake.tail_direction = SNAKE_LEFT;
+        }
+    } else if (pup.snake.tail_direction == SNAKE_LEFT) {
+        if (go_to == 124) {
+            pup.snake.tail_direction = SNAKE_UP;
+        } else if (go_to == 108) {
+            pup.snake.tail_direction = SNAKE_DOWN;
+        }
+    } else if (pup.snake.tail_direction == SNAKE_DOWN) {
+        if (go_to == 124) {
+            pup.snake.tail_direction = SNAKE_RIGHT;
+        } else if (go_to == 126) {
+            pup.snake.tail_direction = SNAKE_LEFT;
+        }
+    }
+
     POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
 
     return ACTION_SNAKE_NOTHING;
@@ -165,31 +187,29 @@ char update() {
 }
 
 void init_level(void) {
-    unsigned int x;
+    unsigned char x = 4;
+    if (pup.type)
+        x = 24;
 
     clrscr();
-    VIC.addr = 0x15;
-
-    do {
-        screen[x]=EMPTY;
-    } while (++x < 1024);
 
     build_level(levels[ (pup.level-1) % (sizeof(levels)/2)]);
-    update_level();
+    if (pup.type)
+        update_level();
+
     pup.snake.head = 530;
     pup.snake.tail = 529;
     pup.snake.grow = 0;
     pup.snake.direction = SNAKE_RIGHT;
+    pup.snake.tail_direction = SNAKE_RIGHT;
     pup.snake.updated = frames; 
     pup.snake.speed = 6;
     pup.snake.apples = 0;
 
-    screen[pup.snake.head] = pup.snake.direction;
-    screen[pup.snake.tail] = pup.snake.direction;
     POKE(VIDEO_MEMORY + pup.snake.head, SNAKE_HEAD);
     POKE(VIDEO_MEMORY + pup.snake.tail, SNAKE_TAIL);
 
-    for (x=0; x<24; x++) {
+    for (; x > 0; --x) {
         new_apple();
     }
 
@@ -198,16 +218,30 @@ void init_level(void) {
 }
 
 void game_intro(void) {
+
     clrscr();
-    memcpy( (unsigned char*)VIDEO_MEMORY + 120, intro_packed, sizeof(intro_packed));
-    VIC.addr = 0x15;
+    cputsxy(12,4,"-=charsnake64=-");
+    cputsxy(6,16,"select type of challenge and");
+    cputsxy(6,18,"press fire on joy 2 to start");
     for (;;) {
         char fat = joy_read(JOY_2);
+        revers(pup.type == 0);
+        cputsxy(14,9," eat or die ");
+        revers(pup.type == 1);
+        cputsxy(11,11," climb the tower ");
+        if (pup.type == 1 && JOY_UP(fat)) {
+            pup.type = 0;
+        }
+        if (pup.type == 0 && JOY_DOWN(fat)) {
+                pup.type = 1;
+        }
         if (JOY_BTN_1(fat)) {
+            revers(0);
             return;
         }
     }
 }
+
 
 void control_snake(void) {
         char fat = joy_read(JOY_2);
@@ -223,9 +257,7 @@ void control_snake(void) {
                 pup.snake.direction = SNAKE_DOWN;
                 return;
             }
-        }
-
-        if (pup.snake.direction == SNAKE_LEFT) {
+        } else if (pup.snake.direction == SNAKE_LEFT) {
             if (fat == JOY_UP_MASK) {
                 pup.snake.body_chr = 124;
                 pup.snake.direction = SNAKE_UP;
@@ -236,9 +268,7 @@ void control_snake(void) {
                 pup.snake.direction = SNAKE_DOWN;
                 return;
             }
-        }
-
-        if (pup.snake.direction == SNAKE_DOWN) {
+        } else if (pup.snake.direction == SNAKE_DOWN) {
             if (fat == JOY_RIGHT_MASK) {
                 pup.snake.body_chr = 124;
                 pup.snake.direction = SNAKE_RIGHT;
@@ -249,9 +279,7 @@ void control_snake(void) {
                 pup.snake.direction = SNAKE_LEFT;
                 return;
             }
-        }
-
-        if (pup.snake.direction == SNAKE_UP) {
+        } else if (pup.snake.direction == SNAKE_UP) {
             if (fat == JOY_RIGHT_MASK) {
                 pup.snake.body_chr = 108;
                 pup.snake.direction = SNAKE_RIGHT;
@@ -268,7 +296,7 @@ void control_snake(void) {
 
 void sleep(char cicles) {
     int end = frames + cicles;
-    do {} while (frames < end);
+    do {} while (frames != end);
 }
 
 void game_play(void) {
@@ -288,6 +316,7 @@ void game_play(void) {
             if (status == ACTION_SNAKE_LEVELUP) {
                 pup.level++;
             }
+            frames = 0;
             sleep(30);
             if (pup.lives == 0) {
                 return;
@@ -300,7 +329,7 @@ void game_play(void) {
 int main(void) {
     VIC.bordercolor = COLOR_BLACK;
     VIC.bgcolor0 = COLOR_BLACK;
-    
+    VIC.addr = 0x15;
     raster_irq();
 
     joy_install (joy_static_stddrv);
