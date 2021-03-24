@@ -8,15 +8,15 @@
 
 #include "game.h"
 
-void build_level(unsigned char *data) {
+void build_level() {
     unsigned int vidx=80;
     unsigned char code,count,chr;
-
+    
     for (;;) {
-        code = *data++;
+        code = *pup.level_arr++;
         if (code == 0xff) {
-            count = *data++;
-            chr = *data++;
+            count = *pup.level_arr++;
+            chr = *pup.level_arr++;
             for (; count>0;count--) {
                 POKE(VIDEO_MEMORY + vidx, chr);
                 ++vidx;
@@ -100,15 +100,14 @@ void open_door(void) {
 }
 
 char update() {
-    unsigned int go_to;
-    unsigned char ch_go_to;
+    unsigned int go_to = pup.snake.head + pup.snake.direction;
+    unsigned char ch_go_to = PEEK(VIDEO_MEMORY + go_to); 
+    unsigned char tmp;
 
     if ((frames - pup.snake.updated) < pup.snake.speed) {
         return ACTION_SNAKE_NOTHING;
     } 
 
-    go_to = pup.snake.head + pup.snake.direction;
-    ch_go_to = PEEK(VIDEO_MEMORY + go_to); 
     pup.snake.updated = frames;
     //check events 
     if (ch_go_to == APPLE) {
@@ -118,7 +117,8 @@ char update() {
         // TODO make speed calculation better
         if (pup.snake.speed > 3) {
             if (pup.snake.apples % 8 == 0) {
-                pup.snake.speed = 6 - pup.snake.apples/8;
+                tmp = pup.snake.apples/8;
+                pup.snake.speed = 6 - tmp;
             }
         }
         update_score();
@@ -152,30 +152,30 @@ char update() {
 
     POKE(VIDEO_MEMORY + pup.snake.tail, 32);
     pup.snake.tail += pup.snake.tail_direction;
-    go_to = PEEK(VIDEO_MEMORY + pup.snake.tail);
+    ch_go_to = PEEK(VIDEO_MEMORY + pup.snake.tail);
 
     if (pup.snake.tail_direction == SNAKE_RIGHT) {
-        if (go_to == 126) {
+        if (ch_go_to == 126) {
             pup.snake.tail_direction = SNAKE_UP;
-        } else if (go_to == 123) {
+        } else if (ch_go_to == 123) {
             pup.snake.tail_direction = SNAKE_DOWN;
         }
     } else if (pup.snake.tail_direction == SNAKE_UP) {
-        if (go_to == 108) {
+        if (ch_go_to == 108) {
             pup.snake.tail_direction = SNAKE_RIGHT;
-        } else if (go_to == 123) {
+        } else if (ch_go_to == 123) {
             pup.snake.tail_direction = SNAKE_LEFT;
         }
     } else if (pup.snake.tail_direction == SNAKE_LEFT) {
-        if (go_to == 124) {
+        if (ch_go_to == 124) {
             pup.snake.tail_direction = SNAKE_UP;
-        } else if (go_to == 108) {
+        } else if (ch_go_to == 108) {
             pup.snake.tail_direction = SNAKE_DOWN;
         }
     } else if (pup.snake.tail_direction == SNAKE_DOWN) {
-        if (go_to == 124) {
+        if (ch_go_to == 124) {
             pup.snake.tail_direction = SNAKE_RIGHT;
-        } else if (go_to == 126) {
+        } else if (ch_go_to == 126) {
             pup.snake.tail_direction = SNAKE_LEFT;
         }
     }
@@ -192,8 +192,9 @@ void init_level(void) {
         x = 24;
 
     clrscr();
-
-    build_level(levels[ (pup.level-1) % (sizeof(levels)/2)]);
+    
+    pup.level_arr = levels[ (pup.level-1) % (sizeof(levels)/2)];
+    build_level();
     if (pup.type)
         update_level();
 

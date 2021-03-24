@@ -206,6 +206,7 @@ struct {
     char lives;
     char level;
     char type; // 0 -- snake or die ; 1 -- climb the tower
+    unsigned char *level_arr;
 } pup;
 #pragma bss-name (pop)
 #pragma data-name (pop)
