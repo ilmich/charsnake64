@@ -11,7 +11,7 @@
 void build_level() {
     unsigned int vidx=80;
     unsigned char code,count,chr;
-    
+
     for (;;) {
         code = *pup.level_arr++;
         if (code == 0xff) {
@@ -28,7 +28,7 @@ void build_level() {
 }
 
 unsigned char frames;
-
+#if (__C64__)
 void raster_routine(void) {
     asm ("dec $d019");//        ; acknowledge IRQ
     frames++;
@@ -59,7 +59,33 @@ void raster_irq(void) {
     asm ("cli");//      ; clear interrupt disable flag
     asm ("rts");
 }
+#elif (__C16__)
+void raster_routine(void) {
+    asm("lda $ff09");
+    asm("sta $ff09");
+    frames++;
+    asm("jmp $fcbe");
+}
 
+void raster_irq(void) {
+    asm("sei");
+    asm("lda #<%v", raster_routine);
+    asm("sta $314");
+    asm("lda #>%v", raster_routine);
+    asm("sta $315");
+
+    asm("lda #$02");
+    asm("sta $ff0a");
+
+    asm("lda #64");
+    asm("sta $ff0b");
+
+    asm("lda $ff09");
+    asm("sta $ff09");
+    asm("cli");
+    asm("rts");
+}
+#endif
 
 void update_score(void) {
     unsigned char str[15];
@@ -192,7 +218,6 @@ void init_level(void) {
         x = 24;
 
     clrscr();
-    
     pup.level_arr = levels[ (pup.level-1) % (sizeof(levels)/2)];
     build_level();
     if (pup.type)
@@ -224,6 +249,7 @@ void game_intro(void) {
     cputsxy(12,4,"-=charsnake64=-");
     cputsxy(6,16,"select type of challenge and");
     cputsxy(6,18,"press fire on joy 2 to start");
+
     for (;;) {
         char fat = joy_read(JOY_2);
         revers(pup.type == 0);
@@ -248,45 +274,45 @@ void control_snake(void) {
         char fat = joy_read(JOY_2);
 
         if (pup.snake.direction == SNAKE_RIGHT) {
-            if (fat == JOY_UP_MASK) {
+            if (JOY_UP(fat)) {
                 pup.snake.body_chr = 126;
                 pup.snake.direction = SNAKE_UP;
                 return;
             }
-            if (fat == JOY_DOWN_MASK) {
+            if (JOY_DOWN(fat)) {
                 pup.snake.body_chr = 123;
                 pup.snake.direction = SNAKE_DOWN;
                 return;
             }
         } else if (pup.snake.direction == SNAKE_LEFT) {
-            if (fat == JOY_UP_MASK) {
+            if (JOY_UP(fat)) {
                 pup.snake.body_chr = 124;
                 pup.snake.direction = SNAKE_UP;
                 return;
             }
-            if (fat == JOY_DOWN_MASK) {
+            if (JOY_DOWN(fat)) {
                 pup.snake.body_chr = 108;
                 pup.snake.direction = SNAKE_DOWN;
                 return;
             }
         } else if (pup.snake.direction == SNAKE_DOWN) {
-            if (fat == JOY_RIGHT_MASK) {
+            if (JOY_RIGHT(fat)) {
                 pup.snake.body_chr = 124;
                 pup.snake.direction = SNAKE_RIGHT;
                 return;
             }
-            if (fat == JOY_LEFT_MASK) {
+            if (JOY_LEFT(fat)) {
                 pup.snake.body_chr = 126;
                 pup.snake.direction = SNAKE_LEFT;
                 return;
             }
         } else if (pup.snake.direction == SNAKE_UP) {
-            if (fat == JOY_RIGHT_MASK) {
+            if (JOY_RIGHT(fat)) {
                 pup.snake.body_chr = 108;
                 pup.snake.direction = SNAKE_RIGHT;
                 return;
             }
-            if (fat == JOY_LEFT_MASK) {
+            if (JOY_LEFT(fat)) {
                 pup.snake.body_chr = 123;
                 pup.snake.direction = SNAKE_LEFT;
                 return;
@@ -328,9 +354,16 @@ void game_play(void) {
 }
 
 int main(void) {
+#if (__C64__)
     VIC.bordercolor = COLOR_BLACK;
     VIC.bgcolor0 = COLOR_BLACK;
     VIC.addr = 0x15;
+#elif (__C16__)
+    TED.bordercolor = COLOR_BLACK;
+    TED.bgcolor = COLOR_BLACK;
+    TED.char_addr =  ((0xD000 >> 8) & 0xFC);
+    POKE(0x053B, COLOR_WHITE);
+#endif
     raster_irq();
 
     joy_install (joy_static_stddrv);
